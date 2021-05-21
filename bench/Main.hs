@@ -1,6 +1,14 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+
+{-# OPTIONS_GHC -ddump-ds -ddump-to-file -dverbose-core2core -ddump-simpl -dsuppress-module-prefixes -dsuppress-coercions -dsuppress-uniques -dsuppress-ticks -ddump-inlinings #-}
+--{-# OPTIONS_GHC -dsuppress-idinfo #-}
+{-# OPTIONS_GHC -funfolding-use-threshold=160 #-}
+
+#define MINIMAL
+
 module Main (main) where
 
 import Control.Monad
@@ -21,8 +29,14 @@ seed = 1337
 
 main :: IO ()
 main = do
-  let !sz = 100000
-      genLengths =
+  let !sz = 1000000
+
+#ifdef MINIMAL
+  defaultMain
+    --[ pureBench random sz (Proxy :: Proxy CUChar) ]
+    [ pureUniformRExcludeMaxBench (Proxy :: Proxy CInt) sz ]
+#else
+  let genLengths =
         -- create 5000 small lengths that are needed for ShortByteString generation
         runStateGen (mkStdGen 2020) $ \g -> replicateM 5000 (uniformRM (16 + 1, 16 + 7) g)
   defaultMain
@@ -245,6 +259,9 @@ main = do
         ]
       ]
     ]
+#endif
+
+
 
 pureUniformRFullBench ::
      forall a. (Typeable a, UniformRange a, Bounded a)
