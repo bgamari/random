@@ -308,8 +308,8 @@ pureBench f sz px =
 
 
 genMany :: (g -> (a, g)) -> g -> Int -> a
-genMany f g0 n = go 0 $ f g0
+genMany f g0 n = go n $ f g0
   where
     go i (!y, !g)
-      | i < n = go (i + 1) $ f g
+      | i > 0 = go (i - 1) $ f g
       | otherwise = y
